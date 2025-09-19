@@ -1,10 +1,10 @@
 FROM ollama/ollama
 
-# Download the small model at build time so container is ready.
-RUN ollama pull llama3.2:1b
-
-# Ollama serve listens on 11434 by default.
+# Expose Ollama's port
 EXPOSE 11434
 
-# Start the Ollama HTTP server
-CMD ["ollama", "serve"]
+# Start Ollama server and pull model at runtime
+CMD ollama serve & \
+  sleep 5 && \
+  ollama pull llama3.2:1b && \
+  tail -f /dev/null
