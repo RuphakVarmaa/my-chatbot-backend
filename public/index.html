@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat with LLM</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    #chat-box {
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-y: auto;
+      background: #fff;
+      margin-bottom: 1rem;
+    }
+    .message {
+      margin: 0.5rem 0;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .user {
+      background: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #e2e2e2;
+      color: black;
+      align-self: flex-start;
+    }
+    #input-area {
+      display: flex;
+      width: 100%;
+      max-width: 600px;
+    }
+    #user-input {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      margin-right: 0.5rem;
+      outline: none;
+    }
+    #send-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    #send-btn:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chatbot</h1>
+  <div id="chat-box"></div>
+  <div id="input-area">
+    <input id="user-input" type="text" placeholder="Type your message..." />
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      addMessage("user", message);
+      userInput.value = "";
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Server error ${response.status}: ${text}`);
+        }
+
+        const data = await response.json();
+        addMessage("bot", data.reply);
+      } catch (err) {
+        addMessage("bot", `Error: ${err.message}`);
+      }
+    }
+
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.classList.add("message", sender);
+      div.textContent = text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Event listeners
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
